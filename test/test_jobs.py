@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
 from app import db
-from app.main import app
+from app.main import job_runner_app
 
 
 @pytest.fixture(scope="session")
@@ -28,7 +28,7 @@ def test_client(test_db_file):
     db.metadata.drop_all(test_engine)
     db.metadata.create_all(test_engine)
 
-    with TestClient(app) as client:
+    with TestClient(job_runner_app) as client:
         yield client
 
 

@@ -1,32 +1,17 @@
 from uuid import UUID
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 
-from app import db, models
+from app import db
+from app.routes import jobs
+
 
 db.init_db()
 
-app = FastAPI(
+job_runner_app = FastAPI(
     title="Job Runner API",
     description="Submit and track jobs running on a Raspberry Pi Kubernetes cluster.",
     version="0.1.0",
 )
 
-
-@app.post("/jobs", response_model=models.JobRead, tags=["Jobs"])
-def create_job(job: models.JobCreate):
-    job_dict = db.create_job(job.dict())
-    return job_dict
-
-
-@app.get("/jobs", response_model=list[models.JobRead], tags=["Jobs"])
-def list_jobs():
-    return db.list_jobs()
-
-
-@app.get("/jobs/{job_id}", response_model=models.JobRead, tags=["Jobs"])
-def get_job(job_id: UUID):
-    job = db.get_job(str(job_id))  # convert UUID to str for DB lookup
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
+job_runner_app.include_router(jobs.router)

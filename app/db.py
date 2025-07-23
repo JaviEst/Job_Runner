@@ -16,6 +16,8 @@ from sqlalchemy import (
 )
 
 from app.config import settings
+from app.constants import DEFAULT_CPU, DEFAULT_MEM
+
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -32,8 +34,8 @@ jobs = Table(
     Column("id", String(36), primary_key=True),
     Column("image", String(255), nullable=False),
     Column("command", JSON, nullable=False),
-    Column("cpu", String(32), default="200m"),
-    Column("memory", String(32), default="128Mi"),
+    Column("cpu", String(32), default=DEFAULT_CPU),
+    Column("memory", String(32), default=DEFAULT_MEM),
     Column("status", String(32), nullable=False, default="queued"),
     Column("message", Text),
     Column("created_at", DateTime, nullable=False),
@@ -44,7 +46,6 @@ jobs = Table(
 def init_db() -> None:
     metadata.create_all(engine)
 
-
 def create_job(data: dict[str, Any]) -> dict[str, Any] | None:
     now = datetime.utcnow()
     job_id = str(uuid.uuid4())
@@ -52,8 +53,8 @@ def create_job(data: dict[str, Any]) -> dict[str, Any] | None:
         id=job_id,
         image=data.get("image"),
         command=data.get("command"),
-        cpu=data.get("cpu"),
-        memory=data.get("memory"),
+        cpu=data.get("cpu") or DEFAULT_CPU,
+        memory=data.get("memory") or DEFAULT_MEM,
         status="queued",
         message=None,
         created_at=now,
@@ -63,7 +64,6 @@ def create_job(data: dict[str, Any]) -> dict[str, Any] | None:
         conn.execute(stmt)
     return get_job(job_id)
 
-
 def get_job(job_id: str) -> dict[str, Any] | None:
     stmt = select(jobs).where(jobs.c.id == job_id)
     with engine.begin() as conn:
@@ -71,7 +71,6 @@ def get_job(job_id: str) -> dict[str, Any] | None:
     if result:
         return dict(result._mapping)
     return None
-
 
 def list_jobs(limit: int = 100) -> list[dict[str, Any]]:
     stmt = select(jobs).order_by(jobs.c.created_at.desc()).limit(limit)
