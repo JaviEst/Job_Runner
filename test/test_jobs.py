@@ -69,7 +69,7 @@ def test_create_job_invalid_command_type(test_client):
 def test_create_job_empty_command(test_client):
     payload = {
         "image": "alpine",
-        "command": [],  # empty list
+        "command": [],
         "cpu": "100m",
         "memory": "128Mi",
     }
@@ -79,7 +79,7 @@ def test_create_job_empty_command(test_client):
 
 def test_create_job_field_length_exceeded(test_client):
     payload = {
-        "image": "a" * 300,  # exceeds 255 characters
+        "image": "a" * 300,
         "command": ["echo", "test"],
         "cpu": "100m",
         "memory": "64Mi",
@@ -89,13 +89,11 @@ def test_create_job_field_length_exceeded(test_client):
 
 
 def test_get_job_by_id(test_client):
-    # Create job first
     job_payload = {"image": "ubuntu", "command": ["ls", "/"], "cpu": "150m", "memory": "128Mi"}
     create_resp = test_client.post("/jobs", json=job_payload)
     assert create_resp.status_code == 200
     job_id = create_resp.json()["id"]
 
-    # Fetch job by ID
     response = test_client.get(f"/jobs/{job_id}")
     assert response.status_code == 200
     data = response.json()
@@ -104,7 +102,6 @@ def test_get_job_by_id(test_client):
 
 
 def test_get_job_not_found(test_client):
-    # UUID that doesn't exist
     fake_id = "00000000-0000-0000-0000-000000000000"
     response = test_client.get(f"/jobs/{fake_id}")
     assert response.status_code == 404
@@ -112,14 +109,12 @@ def test_get_job_not_found(test_client):
 
 
 def test_get_job_invalid_uuid_format(test_client):
-    # Not a valid UUID string
     response = test_client.get("/jobs/not-a-valid-uuid")
     assert response.status_code == 422  # Pydantic validation
     assert "detail" in response.json()
 
 
 def test_list_jobs(test_client):
-    # Add a known job
     job_payload = {
         "image": "busybox",
         "command": ["sleep", "1"],
@@ -128,7 +123,6 @@ def test_list_jobs(test_client):
     }
     test_client.post("/jobs", json=job_payload)
 
-    # List jobs
     response = test_client.get("/jobs")
     assert response.status_code == 200
     jobs = response.json()
