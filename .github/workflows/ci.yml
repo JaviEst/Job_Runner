@@ -91,3 +91,19 @@ jobs:
         context: .
         push: true
         tags: javi99est/job-runner:latest
+
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - name: Lint Helm Chart
+        run: helm lint ./job-runner
+
+      - name: Template Render Check
+        run: helm template ./job-runner --values ./job-runner/values.yaml > /dev/null
