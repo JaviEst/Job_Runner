@@ -5,9 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "fastapi>=0.116.1",
+    "httpx>=0.28.1",
+    "pip>=25.1.1",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
     "pytest>=8.4.1",
     "ruff>=0.12.4",
+    "sqlalchemy>=2.0.41",
     "tox>=4.28.0",
+    "uvicorn>=0.35.0",
 ]
 
 [tool.ruff]
