@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-
 from app import db
 from app.routes import jobs
 
@@ -16,6 +15,7 @@ job_runner_app = FastAPI(
 job_runner_app.include_router(jobs.router)
 
 instrumentator = Instrumentator().instrument(job_runner_app)
+
 
 @job_runner_app.on_event("startup")
 async def _startup():
