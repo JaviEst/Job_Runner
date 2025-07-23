@@ -4,8 +4,8 @@ from fastapi import APIRouter, HTTPException
 
 from app import db, models
 
-
 router = APIRouter()
+
 
 @router.post("/jobs", response_model=models.JobRead, tags=["Jobs"])
 def create_job(job: models.JobCreate):

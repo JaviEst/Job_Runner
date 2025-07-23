@@ -1,10 +1,7 @@
-from uuid import UUID
-
 from fastapi import FastAPI
 
 from app import db
 from app.routes import jobs
-
 
 db.init_db()
 
