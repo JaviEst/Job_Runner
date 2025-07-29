@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
-from app import db
+from app.db import jobs
 from app.main import job_runner_app
 
 
@@ -23,10 +23,10 @@ def test_client(test_db_file):
     test_engine = create_engine(
         test_db_file, connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
-    db.engine = test_engine
-    db.metadata.bind = test_engine
-    db.metadata.drop_all(test_engine)
-    db.metadata.create_all(test_engine)
+    jobs.engine = test_engine
+    jobs.metadata.bind = test_engine
+    jobs.metadata.drop_all(test_engine)
+    jobs.metadata.create_all(test_engine)
 
     with TestClient(job_runner_app) as client:
         yield client

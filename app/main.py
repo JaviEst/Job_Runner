@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app import db
-from app.routes import jobs
+from app.db import jobs as db_jobs
+from app.routes import jobs as route_jobs
 
-db.init_db()
+db_jobs.init_db()
 
 job_runner_app = FastAPI(
     title="Job Runner API",
@@ -12,7 +12,7 @@ job_runner_app = FastAPI(
     version="0.1.0",
 )
 
-job_runner_app.include_router(jobs.router)
+job_runner_app.include_router(route_jobs.router)
 
 instrumentator = Instrumentator().instrument(job_runner_app)
 
