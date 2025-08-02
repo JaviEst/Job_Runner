@@ -19,7 +19,6 @@ class JSONPatchOperation(BaseModel):
 
 
 class JobPatchRequest(BaseModel):
-    job_id: str
     patch: list[JSONPatchOperation]
 
 
