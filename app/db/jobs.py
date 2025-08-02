@@ -1,5 +1,3 @@
-import uuid
-from datetime import datetime
 from typing import Any
 
 from sqlalchemy import (
@@ -10,15 +8,18 @@ from sqlalchemy import (
     String,
     Table,
     Text,
-    create_engine,
     insert,
+    update,
     select,
 )
+
+from sqlalchemy.ext.asyncio import create_async_engine
+
 
 from app.config import settings
 from app.constants import DEFAULT_CPU, DEFAULT_MEM
 
-engine = create_engine(
+engine = create_async_engine(
     settings.DATABASE_URL,
     connect_args={"check_same_thread": False},
     echo="debug",
@@ -42,40 +43,48 @@ jobs = Table(
 )
 
 
-def init_db() -> None:
-    metadata.create_all(engine)
+async def init_db() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(metadata.create_all)
 
 
-def create_job(data: dict[str, Any]) -> dict[str, Any] | None:
-    now = datetime.utcnow()
-    job_id = str(uuid.uuid4())
+async def create_job(data: dict[str, Any]) -> None:
     stmt = insert(jobs).values(
-        id=job_id,
+        id=data.get("id"),
         image=data.get("image"),
         command=data.get("command"),
         cpu=data.get("cpu") or DEFAULT_CPU,
         memory=data.get("memory") or DEFAULT_MEM,
-        status="queued",
-        message=None,
-        created_at=now,
-        updated_at=now,
+        status=data.get("status"),
+        message=data.get("message"),
+        created_at=data.get("created_at"),
+        updated_at=data.get("updated_at"),
     )
-    with engine.begin() as conn:
-        conn.execute(stmt)
-    return get_job(job_id)
-
-
-def get_job(job_id: str) -> dict[str, Any] | None:
-    stmt = select(jobs).where(jobs.c.id == job_id)
-    with engine.begin() as conn:
-        result = conn.execute(stmt).first()
-    if result:
-        return dict(result._mapping)
+    async with engine.begin() as conn:
+        await conn.execute(stmt)
     return None
 
 
-def list_jobs(limit: int = 100) -> list[dict[str, Any]]:
+async def update_job(job_id: str, patched_job_dict: dict[str, Any]) -> None:
+    stmt = update(jobs).where(jobs.c.id == job_id).values(**patched_job_dict)
+    async with engine.begin() as conn:
+        await conn.execute(stmt)
+    return None
+
+
+async def list_jobs(limit: int = 100) -> list[dict[str, Any]]:
     stmt = select(jobs).order_by(jobs.c.created_at.desc()).limit(limit)
-    with engine.begin() as conn:
-        result = conn.execute(stmt).fetchall()
-    return [dict(row._mapping) for row in result]
+    async with engine.begin() as conn:
+        result = await conn.execute(stmt)
+        rows = result.fetchall()
+    return [dict(row._mapping) for row in rows]
+
+
+async def get_job(job_id: str) -> dict[str, Any] | None:
+    stmt = select(jobs).where(jobs.c.id == job_id)
+    async with engine.begin() as conn:
+        result = await conn.execute(stmt)
+        row = result.first()
+    if row:
+        return dict(row._mapping)
+    return None
