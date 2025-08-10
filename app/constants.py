@@ -1,2 +1,4 @@
+DEFAULT_JOB_STATUS = "queued"
+
 DEFAULT_CPU = "100m"
 DEFAULT_MEM = "128Mi"

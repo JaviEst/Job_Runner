@@ -92,7 +92,7 @@ jobs:
         push: true
         tags: javi99est/job-runner:latest
 
-  helm-lint:
+  helm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

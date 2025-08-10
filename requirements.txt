@@ -1,4 +1,7 @@
+aiosqlite
 fastapi
+jsonpatch
+greenlet
 prometheus_fastapi_instrumentator
 pydantic
 pydantic-settings
