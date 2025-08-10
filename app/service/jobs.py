@@ -1,10 +1,9 @@
-from datetime import datetime
-import json
 import uuid
+from datetime import datetime
 
 import jsonpatch
 
-from app.constants import DEFAULT_JOB_STATUS, DEFAULT_CPU, DEFAULT_MEM
+from app.constants import DEFAULT_CPU, DEFAULT_JOB_STATUS, DEFAULT_MEM
 from app.db import jobs as db_jobs
 from app.models import jobs as models_jobs
 from app.routes import jobs as routes_jobs
@@ -36,16 +35,15 @@ async def create_job(new_job: models_jobs.JobCreate) -> models_jobs.JobRead:
 
 async def patch_job(
     job_id: str,
-    patch_ops: list[models_jobs.JSONPatchOperation],
+    patch_ops: models_jobs.JobPatchRequest,
 ) -> models_jobs.JobRead:
-
     current_job = await get_job(job_id)
     if current_job is None:
         raise KeyError("Job not found")
-    
+
     if not patch_ops:
         return await get_job(job_id)
-    
+
     for patch in patch_ops:
         if patch.op != "replace":
             raise ValueError(f"Unsupported operation: {patch.op}")
@@ -77,7 +75,7 @@ async def patch_job(
                 updated_fields[path] = patched_job_dict[path]
 
     except jsonpatch.JsonPatchException as e:
-        raise ValueError(f"Invalid patch: {e}")
+        raise ValueError(f"Invalid patch: {e}") from jsonpatch.JsonPatchException
 
     await db_jobs.update_job(job_id, updated_fields)
     return await get_job(job_id)

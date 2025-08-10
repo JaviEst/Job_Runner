@@ -1,5 +1,5 @@
 import asyncio
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Request
@@ -31,13 +31,12 @@ async def patch_job(
     job_id: UUID,
     request: models_jobs.JobPatchRequest,
 ) -> models_jobs.JobRead:
-
     try:
         return await service_jobs.patch_job(str(job_id), request.patch)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+        raise HTTPException(status_code=400, detail=str(e)) from ValueError
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found") from KeyError
 
 
 @router.get(
@@ -66,6 +65,7 @@ async def get_job(job_id: UUID) -> models_jobs.JobRead:
 # A shared list of queues — each queue is for one connected client
 job_event_subscribers: list[asyncio.Queue] = []
 
+
 @router.get("/stream/jobs", summary="Stream job events via SSE", tags=["Jobs"])
 async def stream_jobs(request: Request) -> StreamingResponse:
     queue = asyncio.Queue()
@@ -82,7 +82,7 @@ async def stream_jobs(request: Request) -> StreamingResponse:
                     # Wait for new job data or timeout to send heartbeat
                     job_data = await asyncio.wait_for(queue.get(), timeout=15.0)
                     yield f"data: {job_data}\n\n"
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     yield ": keep-alive\n\n"  # comment-style keep-alive ping
         finally:
             # Always remove the queue from subscribers when done

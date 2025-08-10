@@ -9,12 +9,10 @@ from sqlalchemy import (
     Table,
     Text,
     insert,
-    update,
     select,
+    update,
 )
-
 from sqlalchemy.ext.asyncio import create_async_engine
-
 
 from app.config import settings
 from app.constants import DEFAULT_CPU, DEFAULT_MEM

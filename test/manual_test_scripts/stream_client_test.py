@@ -1,5 +1,6 @@
 import requests
 
+
 def connect_to_stream():
     url = "http://localhost:8000/stream/jobs"
 
@@ -22,6 +23,7 @@ def connect_to_stream():
                 continue
             else:
                 buffer += line + "\n"
+
 
 if __name__ == "__main__":
     try:
